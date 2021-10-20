@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -34,9 +35,20 @@ namespace RegistrationWeb.Middleware
             memoryStream.Seek(0, SeekOrigin.Begin);
 
             var readToEnd = new StreamReader(memoryStream).ReadToEnd();
-            var objResult = JsonConvert.DeserializeObject(readToEnd);
-            var result = _responseHelper.ResponseGenerator(objResult,
-                context.Response.StatusCode == (int)HttpStatusCode.OK, null);
+            
+            ResponseModel result;
+            
+            try
+            {
+                var objResult = JsonConvert.DeserializeObject(readToEnd);
+                result = _responseHelper.ResponseGenerator(objResult,
+                    context.Response.StatusCode == (int)HttpStatusCode.OK, null);
+            }
+            catch (Exception e)
+            {
+                result = _responseHelper.ResponseGenerator(readToEnd,
+                    context.Response.StatusCode == (int)HttpStatusCode.OK, null);
+            }
 
             await context.Response.WriteAsync(JsonConvert.SerializeObject(result));
         }
